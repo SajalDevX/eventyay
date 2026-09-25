@@ -107,7 +107,7 @@ def test_record_usage(dummy_organizer, usage_signal_receivers):
         record_usage(
             dummy_organizer,
             'test_cap',
-            5,
+            quantity=5,
             unit='emails',
             source_type='bulk_email',
             source_id='42',
@@ -155,6 +155,15 @@ def test_record_usage_matches_strict_receiver(dummy_organizer, usage_signal_rece
         assert received == [('registration.free_allowance_per_event', 2, 'order_ABC12_free_registrations')]
     finally:
         entitlement_usage_recorded.disconnect(strict_receiver)
+
+
+@pytest.mark.django_db
+def test_record_usage_requires_quantity_by_keyword(dummy_organizer, usage_signal_receivers):
+    fields = dict(unit='emails', source_type='bulk_email', source_id='42', idempotency_key='bulk_mail_42')
+    with pytest.raises(TypeError):
+        record_usage(dummy_organizer, 'test_cap', **fields)
+    with pytest.raises(TypeError):
+        record_usage(dummy_organizer, 'test_cap', 5, **fields)
 
 
 @pytest.mark.django_db
