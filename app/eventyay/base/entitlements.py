@@ -54,8 +54,8 @@ def check_entitlement(
 def record_usage(
     organizer,
     capability: str,
-    quantity: float = 1,
     *,
+    quantity: float,
     unit: str,
     source_type: str,
     source_id: str,
