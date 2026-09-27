@@ -166,6 +166,37 @@ def test_record_usage_requires_quantity_by_keyword(dummy_organizer, usage_signal
         record_usage(dummy_organizer, 'test_cap', 5, **fields)
 
 
+USAGE_FIELDS = {
+    'quantity': 2,
+    'unit': 'registrations',
+    'source_type': 'order',
+    'source_id': 'ABC12',
+    'idempotency_key': 'order_ABC12_free_registrations',
+}
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize('missing', list(USAGE_FIELDS))
+def test_record_usage_requires_each_usage_field(dummy_organizer, usage_signal_receivers, missing):
+    """
+    Each usage field is required: leaving one out must fail in record_usage
+    itself, before any receiver sees a partial usage record.
+    """
+    received = []
+
+    def usage_receiver(sender, **kwargs):
+        received.append(kwargs)
+
+    entitlement_usage_recorded.connect(usage_receiver)
+    try:
+        fields = {name: value for name, value in USAGE_FIELDS.items() if name != missing}
+        with pytest.raises(TypeError, match=missing):
+            record_usage(dummy_organizer, 'registration.free_allowance_per_event', **fields)
+        assert received == []
+    finally:
+        entitlement_usage_recorded.disconnect(usage_receiver)
+
+
 @pytest.mark.django_db
 def test_get_capability_registry(registry_signal_receivers):
     """Test that get_capability_registry merges dictionaries correctly."""
