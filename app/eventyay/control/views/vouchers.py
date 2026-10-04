@@ -539,7 +539,7 @@ class VoucherRNG(EventPermissionRequiredMixin, View):
             num = int(request.GET.get('num', '5'))
         except ValueError:  # NOQA
             return HttpResponseBadRequest()
-        if num > self.MAX_CODES:
+        if num < 0 or num > self.MAX_CODES:
             # The codes are generated inside the request, so time and memory
             # grow with ``num``. Same limit as pretix.
             return HttpResponseBadRequest()

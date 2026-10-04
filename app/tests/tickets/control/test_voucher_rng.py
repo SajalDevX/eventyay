@@ -46,3 +46,14 @@ def test_rng_rejects_more_codes_than_the_limit(client, env):
     response = client.get(_rng_url(organizer, event), {'num': 100_001})
 
     assert response.status_code == 400
+
+
+@override_settings(DEBUG=True)
+@pytest.mark.django_db
+def test_rng_rejects_a_negative_number_of_codes(client, env):
+    organizer, event, user = env
+    client.force_login(user)
+
+    response = client.get(_rng_url(organizer, event), {'num': -1})
+
+    assert response.status_code == 400
